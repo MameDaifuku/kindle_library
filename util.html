@@ -1,0 +1,16 @@
+<script>
+  //デバイスサイズ取得ロジック
+  function getViewportSize() {
+    const w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0),
+    h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
+    $("#w").text(w);
+    $("#h").text(h);
+  }
+  window.addEventListener('load', (e) => {
+    getViewportSize();
+  });
+  window.addEventListener('resize', (e) => {
+    getViewportSize();
+  });
+</script>

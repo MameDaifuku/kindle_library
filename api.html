@@ -1,0 +1,204 @@
+<script>
+
+  /* ★★★★★★★★★★★★★★★更新系★★★★★★★★★★★★★★ */
+
+  function updateStatusTag(titlePronunciationSeries, statusTag) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(function(){
+          resolve();
+        })
+        .withFailureHandler(function(){
+          reject();
+        })
+        .updateStatusTag([titlePronunciationSeries, statusTag]);
+    });
+  }
+
+  /* xmlファイル選択時の処理 */
+  function upsertFromXmlFile(inputElement) {
+    let fileReader = new FileReader();
+    fileReader.onload = function(e) {
+      //おまじない
+      'use strict';
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(e.target.result, "text/xml");
+      let targetArray = [];
+      for (let book of doc.getElementsByTagName("meta_data")) {
+        if (!ASINData.includes(book.getElementsByTagName("ASIN")[0].textContent)) {
+          
+          //authorを直列化
+          let authors = "";
+          let authorsPronunciation = "";
+          for (let author of book.getElementsByTagName("author")) {
+            authors += author.textContent;
+            authors += ";";
+            authorsPronunciation += author.getAttribute("pronunciation");
+            authorsPronunciation += ";";
+          }
+
+          //publisherを直列化
+          let publishers = "";
+          for (let publisher of book.getElementsByTagName("publisher")) {
+            publishers += publisher.textContent;
+            publishers += ";";
+          }
+
+          //originを直列化
+          let origins = "";
+          for (let origin of book.getElementsByTagName("origin")) {
+            origins += origin.textContent;
+            origins += ";";
+          }
+
+          let target = [
+            book.getElementsByTagName("ASIN")[0].textContent,
+            book.getElementsByTagName("title")[0].textContent,
+            book.getElementsByTagName("title")[0].getAttribute("pronunciation"),
+            book.getElementsByTagName("title")[0].getAttribute("pronunciation").split("0")[0],
+            authors,
+            authorsPronunciation,
+            book.getElementsByTagName("publication_date")[0].textContent,
+            book.getElementsByTagName("purchase_date")[0].textContent,
+            "", //STATUS_TAG //"NONE"とかセットしてはいけない。
+            publishers,
+            book.getElementsByTagName("textbook_type")[0].textContent,
+            book.getElementsByTagName("cde_contenttype")[0].textContent,
+            book.getElementsByTagName("content_type")[0].textContent,
+            origins,
+          ]
+          targetArray.push(target);
+        }
+      }
+
+      console.log("xmlのループ終了");
+      google.script.run
+        .withSuccessHandler(function(val){
+          /* 正常系 */
+          alert("正常終了：" + val);
+        })
+        .withFailureHandler(function(val){
+          /* 異常系 */
+          alert("異常終了：" + val);
+        })
+        .insertKindleBooks(targetArray); //insert対象のレコード情報を配列でそのまま渡す。サーバー側は配列としてそのまま処理できる。
+    };
+
+    // ファイルの読み込み(単一ファイル選択、テキストファイルを前提とする)
+    if (inputElement.files[0]) {
+      fileReader.readAsText(inputElement.files[0]);
+    }
+  }
+
+  /* ★★★★★★★★★★★★★★★取得系★★★★★★★★★★★★★★ */
+
+  /* ASINだけ取得 */
+  async function getASINData() {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(function(val){
+          /* 正常系 */
+          ASINData = val;
+          console.log("getASINData done.");
+          resolve();
+        })
+        .withFailureHandler(function(val){
+          /* 異常系 */
+          alert("異常終了：" + val);
+          reject();
+        })
+        .getASINData();    
+    });
+  }
+
+  /* シリーズ集計用の情報だけ取得 */
+  async function getTitlePronunciationSeriesData() {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(function(val){
+          /* 正常系 */
+          titlePronunciationSeriesData = val;
+          console.log("getTitlePronunciationSeriesData done.");
+          resolve();
+        })
+        .withFailureHandler(function(val){
+          /* 異常系 */
+          alert("異常終了：" + val);
+          reject();
+        })
+        .getTitlePronunciationSeriesData();     
+    });
+  }
+
+  /* スプシのデータを一括取得 */
+  async function getAllData() {
+    return new Promise((resolve, reject) => {
+      let startUT = Date.now();
+      google.script.run
+        .withSuccessHandler(function(val){
+          /* 正常系 */
+          $("#preGetAllDataStatus").text("★取得済★");
+          $("#preGetAllDataStatus").css("color", "red");
+          allData = val;
+  
+          //シリーズ単位で集約
+          for (let seriesTitle of titlePronunciationSeriesData) {
+            //まずデータ一式からシリーズタイトルに合致する行を絞り込み
+            let allDataFiltered = allData.filter((row) => (row[title_pronunciation_series] == seriesTitle));
+            //絞り込んだ行を出版日で降順sortして一番上をresultに格納
+            let maxRow = allDataFiltered.sort((a, b) => {
+              //降順sort
+              return (a[publication_date] < b[publication_date]) ? 1 : -1;
+            })[0];
+            seriesData.push(maxRow);
+          }
+  
+          //seriesDOMArrayを生成
+          for (let row of seriesData) {
+            if (row[ASIN] == "ASIN") {
+              //ヘッダ行は飛ばす
+              continue;
+            }
+  
+            let outerDivDOM = $("<div>", {
+              class:"dispElementDiv"
+            });
+  
+            //ここのタイミングでimgにclickイベントをセットすると謎のタイミングでclickイベントの中身が吹っ飛ぶ。マジで謎挙動。
+            //描画するタイミングでclickイベントをセットするように実装する。本当にキモイ実装をしてる。
+            outerDivDOM.append(
+              $("<img>", {
+                src:"http://images.amazon.com/images/P/" + row[ASIN] + ".01._SCLZZZZZZZ.jpg",
+                class: "dispElementImg",
+              })
+            );
+  
+            outerDivDOM.append(
+              $("<span>", {
+                //DOM内に値を固定するためにspan内に保持させる。rowを直接参照しようとすると最下行rowの値を取ってしまう。
+                text:row[title_pronunciation_series],
+                css: {
+                  display:"none",
+                }
+              })
+            );
+  
+            outerDivDOM.append(createStatusTagSelectDOM(row[status_tag]));
+            seriesDOMArray[row[ASIN]] = outerDivDOM;
+          }
+  
+          dispSeries();
+          $("#preInitTime").text("初期処理時間：" + Math.floor((Date.now() - startUT) / 1000) + "秒");
+          console.log("getAllData done.");
+          resolve();
+        })
+        .withFailureHandler(function(val){
+          /* 異常系 */
+          alert("異常終了：" + val);
+          reject();
+        })
+        .getAllData();        
+    });
+  }
+</script>

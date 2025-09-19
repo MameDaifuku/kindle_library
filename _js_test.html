@@ -1,0 +1,137 @@
+<script>
+  /* 検証実装置き場 */
+
+  function testGetRequest() {
+    /* 外部ドメインにGet通信 */
+    /* これ自体は機能したけどAmazon側でブロックされた。スクレイピングせずにAPIを使えってさ。 */
+    google.script.run
+      .withSuccessHandler(function(val){
+        /* 正常系 */
+        console.log("OK");
+        console.log(val);
+      })
+      .withFailureHandler(function(val){
+        /* 異常系 */
+        console.log("NG");
+        console.log(val);
+      })
+      .getRequest(); /* Apps Scriptの関数 */
+  }
+
+  function testWriteGSS() {
+    /* スプシに書き込み */
+    google.script.run
+      .withSuccessHandler(function(val){
+        /* 正常系 */
+        console.log("OK");
+        console.log(val);
+      })
+      .withFailureHandler(function(val){
+        /* 異常系 */
+        console.log("NG");
+        console.log(val);
+      })
+      .writeGSS(); /* Apps Scriptの関数 */
+  }
+
+  function testReadGSS() {
+    /* スプシから読み込み */
+    google.script.run
+      .withSuccessHandler(function(val){
+        /* 正常系 */
+        console.log("OK");
+        console.log(val);
+      })
+      .withFailureHandler(function(val){
+        /* 異常系 */
+        console.log("NG");
+        console.log(val);
+      })
+      .readGSS(); /* Apps Scriptの関数 */
+  }
+
+  function testCallAppsScript() {
+    /* HTMLからApps Scriptの関数を呼び出せることを確認 */
+    google.script.run
+      .withSuccessHandler(function(val){
+        /* 正常系 */
+        console.log("OK");
+        console.log(val);
+      })
+      .withFailureHandler(function(val){
+        /* 異常系 */
+        console.log("NG");
+        console.log(val);
+      })
+      .myFunction("zxcvb"); /* Apps Scriptの関数、引数も渡せる */
+  }
+
+    /* ファイル読込
+    <input id="inputXmlFileSelect" type="file" onchange="onchangeInputXmlFileSelect(this)" />
+      function onchangeInputXmlFileSelect(inputElement) {
+        // FileReaderを生成
+        var fileReader = new FileReader();
+        // 読み込み完了時の処理を追加
+        fileReader.onload = function(e) {
+          console.log(e);
+          console.log(e.target);
+          console.log(e.target.result); //これがテキストファイルの中身の文字列になる
+        };
+        // ファイルを取得
+        var file = inputElement.files[0];
+        // ファイルの読み込み(Data URI Schemeの取得)
+        if (file) {
+          fileReader.readAsText(file);
+        }
+      }
+    */
+
+    /* ラジオボタンを動的生成
+    outerDivDOM.append(
+      $("<div>").append(
+        $("<input type='radio'>")
+          .attr("id", "rbStatusTagNone_" + row[ASIN])
+          .attr("name", "rbStatusTag")
+          .attr("value", STATUS_TAG.NONE)
+      ).append(
+        $("<label>")
+          .attr("for", "rbStatusTagNone_" + row[ASIN])
+          .text("未設定")
+      )
+    ).append(
+      $("<div>").append(
+        $("<input type='radio'>")
+          .attr("id", "rbStatusTagInvisible_" + row[ASIN])
+          .attr("name", "rbStatusTag")
+          .attr("value", STATUS_TAG.INVISIBLE)
+      ).append(
+        $("<label>")
+          .attr("for", "rbStatusTagInvisible_" + row[ASIN])
+          .text("非表示")
+      )
+    ).append(
+      $("<div>").append(
+        $("<input type='radio'>")
+          .attr("id", "rbStatusTagBuy_" + row[ASIN])
+          .attr("name", "rbStatusTag")
+          .attr("value", STATUS_TAG.BUY)
+      ).append(
+        $("<label>")
+          .attr("for", "rbStatusTagBuy_" + row[ASIN])
+          .text("購読中")
+      )
+    ).append(
+      $("<div>").append(
+        $("<input type='radio'>")
+          .attr("id", "rbStatusTagEnd_" + row[ASIN])
+          .attr("name", "rbStatusTag")
+          .attr("value", STATUS_TAG.END)
+      ).append(
+        $("<label>")
+          .attr("for", "rbStatusTagEnd_" + row[ASIN])
+          .text("完結済")
+      )
+    );
+    */
+
+</script>

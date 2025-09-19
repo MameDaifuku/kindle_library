@@ -1,0 +1,135 @@
+    <style>
+      /* https://magazine.techacademy.jp/magazine/37994 */
+      /* div {
+        font-size: 2rem;
+        text-align: center;
+        margin: 10px;
+        padding: 10px;
+      } */
+
+      pre {
+        font-size:16px;
+        margin:0px;
+      }
+
+      button {
+        font-size:16px;
+      }
+
+      #dispAreaDiv {
+        /* height:100%; */
+        background: lightblue;
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      #subDispAreaDiv {
+        /* height:100%; */
+        background: lightblue;
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .dispElementDiv {
+        background: lightgreen;
+        border: 2px solid #000000;
+        margin: 2px;
+        padding: 0px;
+        cursor:pointer;
+        /* display:flex; */
+      }
+
+      .dispElementImg {
+        width: 200px;
+        height: 284px;
+      }
+
+      #btnSearch {
+        margin:0px;
+      }
+
+      #inputXmlFileSelect::file-selector-button {
+        display:block;
+      }
+
+      /* 上から串刺しで反映されるからmin-heightが小さい方を上の置かないといけない */
+
+      /* iPad mini（第5世代）（chrome）（縦） */
+      @media (orientation:portrait) and (max-width: 980px) and (min-height: 1105px) {
+        #divDeviceName {
+          background:red;
+        }
+        #dispAreaDiv {
+          width:100%;
+        }
+        #subDispAreaDiv {
+          width:100%;
+        }
+        .dispElementImg {
+          width: 225px;
+          height: 319px;
+        }
+        #inputXmlFileSelect {
+          display:none;
+        }
+        #btnSearch {
+          height:100px;
+          width:200px;
+          font-size:32px;
+        }
+        /* #btnToggleDispAreaDiv {
+          height:100px;
+          width:200px;
+          font-size:32px;
+        } */
+      } 
+
+      /* iPhone15 Pro（chrome）（縦） */
+      @media (orientation:portrait) and (max-width: 980px) and (min-height: 1594px) {
+        #divDeviceName {
+          background:yellow;
+        }
+        #dispAreaDiv {
+          width:100%;
+        }
+        #subDispAreaDiv {
+          width:100%;
+        }
+        .dispElementImg {
+          width: 300px;
+          height: 426px;
+        }
+        #inputXmlFileSelect {
+          display:none;
+        }
+        #btnSearch {
+          height:100px;
+          width:200px;
+          font-size:32px;
+        }
+        /* #btnToggleDispAreaDiv {
+          height:100px;
+          width:200px;
+          font-size:32px;
+        } */
+      } 
+
+      /* iPad Pro（第3世代）（chrome）（横） */
+      /* @media (orientation:landscape) and (max-width: 980px) and (min-height: 597px) {
+        #divDeviceName {
+          background:blue;
+        }
+        #dispAreaDiv {
+          width:100%;
+        }
+        #subDispAreaDiv {
+          width:100%;
+        }
+        .dispElementImg {
+          width: 150px;
+        }
+        #inputXmlFileSelect {
+          display:none;
+        }
+      }  */
+    </style>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <!-- TODO ↓がなくてもレスポンシブになるっぽいけどこいつはどういう仕事をするんや？MDNにはdevice-widthは非推奨と書かれていた -->
+    <!-- <meta name="viewport" content="width=device-width,initial-scale=1.0"> -->
+    <title>たいとる！</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- 外部jsファイルの組み込み -->
+    <!-- <?!= HtmlService.createHtmlOutputFromFile('_js_test').getContent(); ?> -->
+    <?!= HtmlService.createHtmlOutputFromFile('const').getContent(); ?>
+    <?!= HtmlService.createHtmlOutputFromFile('api').getContent(); ?>
+    <?!= HtmlService.createHtmlOutputFromFile('css').getContent(); ?>
+  </head>
+  <body>
+    <header style="position:fixed;background-color:white;z-index:99;" >
+      <!-- 検索ボタンと検索条件 -->
+      <table border="1">
+        <tr>
+          <td id="tdXmlFileSelect">
+            <!-- PCの場合のみ表示する -->
+            <input id="inputXmlFileSelect" type="file" style="width:150px;"   onchange="upsertFromXmlFile(this)" />
+          </td>
+          <td>
+            <input type="checkbox" id="cbEditMode" onchange="dispDivRbSelectStatusTag();" />
+            <label for="cbEditMode">編集モード</label>
+          </td>
+          <td>
+            <input 
+              type="radio" 
+              id="rbSortPurchaseDate" 
+              name="rbSort" 
+              value="purchaseDate" 
+              onchange='dispSeries();' 
+              checked />
+            <label for="rbSortPurchaseDate">購入日順</label>
+            <input 
+              type="radio" 
+              id="rbSortPublicationDate" 
+              name="rbSort" 
+              value="publicationDate" 
+              onchange='dispSeries();' />
+            <label for="rbSortPublicationDate">出版日順</label>
+          </td>
+          <!-- TODO そのうち表示単位チェックボックスを消す。関数周りの整理も含めて。常時シリーズ単位表示でいい。 -->
+          <td style="display:none;">
+            <input type="checkbox" id="cbDispSeries" checked />
+            <label for="cbDispSeries">シリーズ単位で表示する</label>
+          </td>
+          <td>
+            <input type="checkbox" id="cbStatusTagNone" onclick='dispSeries();' checked />
+            <label for="cbStatusTagNone">未設定</label>
+            <input type="checkbox" id="cbStatusTagInvisible" onclick='dispSeries();' />
+            <label for="cbStatusTagInvisible">非表示</label>
+            <input type="checkbox" id="cbStatusTagBuy" onclick='dispSeries();' checked />
+            <label for="cbStatusTagBuy">購読中</label>
+            <input type="checkbox" id="cbStatusTagEnd" onclick='dispSeries();' checked />
+            <label for="cbStatusTagEnd">完結済</label>
+            <input type="checkbox" id="cbStatusTagNotComic" onclick='dispSeries();' checked />
+            <label for="cbStatusTagNotComic">非コミック</label>
+          </td>
+          <td>
+            <!-- TODO 現状空欄 -->
+          </td>
+          <td>
+            <button onclick='toggleDispAreaDiv("main");' >シリーズ表示に切替</button>
+            <div style="display:none;">
+              <input 
+                type="radio" 
+                id="rbDispUnitSeries" 
+                name="rbDispUnit" 
+                value="series" 
+                onchange='toggleDispAreaDiv("main");' 
+                checked />
+              <label for="rbDispUnitSeries">シリーズ表示</label>
+              <input 
+                type="radio" 
+                id="rbDispUnitBook" 
+                name="rbDispUnit" 
+                value="book" 
+                onchange='toggleDispAreaDiv("sub");'
+                />
+              <label for="rbDispUnitBook">本表示</label>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <pre id="preInitTime">初期処理時間：</pre>
+          </td>
+          <td>
+            <pre id="preGetAllDataStatus" >取得中......</pre>
+          </td>
+          <td>
+            <pre>タイトル検索</pre>
+            <input 
+              id="inputSearchTitle" 
+              style="width:-webkit-fill-available;" 
+              onchange='dispSeries();'/>
+          </td>
+          <td>
+            <!-- TODO 現状空欄 -->
+          </td>
+          <td>
+            <!-- TODO 現状空欄 -->
+          </td>
+          <td><button onclick="scrollToTop();" >上へスクロール</button></td>
+        </tr>
+      </table>
+    </header>
+
+    <!-- 表示系のdivをひとまとめにする -->
+    <div id="divAll" style="padding-top:120px;">
+      <!-- デバッグ表示（不要なときは非表示にしておく） -->
+      <div style="display:none;">
+      <!-- <div> -->
+        <!-- デバイス判定 -->
+        <div id="divDeviceName">
+          <pre style="margin:0px;">赤：mini<br>黄：iPhone</pre>
+        </div>
+        <!-- デバイスサイズ表示領域 -->
+        <div>
+          <p>幅</p><p id="w"></p>
+          <p>高さ</p><p id="h"></p>
+        </div>
+      </div>
+      <!-- メイン表示領域 -->
+      <div id="dispAreaDiv"></div>
+      <!-- サブ表示領域 -->
+      <div id="subDispAreaDiv"></div>
+    </div>
+
+    <script type="text/javascript">
+
+      //スプシのデータをブラウザにキャッシュする
+      let allData;  //スプシから直
+      let ASINData; //スプシから直
+      let titlePronunciationSeriesData; //スプシから直
+
+      let seriesData = []; //allDataを集約して生成
+      let seriesDOMArray = {}; //seriesDataから生成、ASINがキー
+
+      //DOM読込後の処理
+      $(document).ready(async function(){
+        await getASINData();
+        await getTitlePronunciationSeriesData();
+        await getAllData();
+      });
+
+      /* 上へスクロール */
+      function scrollToTop() {
+        //heightの状態によってscrollToやwindow.scrollYの判定が正常に動かなくなる。
+        //なので、処理の手前でheightをいじって強制的に初期化してscrollを挙動させる。
+        $("#divAll").css("height", "100%");
+        $("#divAll").css("height", "");
+        $("#divAll").css("height", "100%");
+        scrollTo(0, 0);
+      }
+
+      /* StatusTagのselectの表示有無を切り替え */
+      function dispDivRbSelectStatusTag() {
+        //シリーズ表示に強制切り替え
+        $('input[name=rbDispUnit]').val(['series']);//値をセットしてもchangeイベントが呼ばれない。なぜ？
+        toggleDispAreaDiv("main");
+
+        if ($("#cbEditMode").prop("checked")) {
+          $(".divRbSelectStatusTag").css("display", "block");
+          $(".dispElementImg").css("opacity", "0.5");
+        } else {
+          $(".divRbSelectStatusTag").css("display", "none");
+          $(".dispElementImg").css("opacity", "1");
+        }
+      }
+
+      /* StatusTagのselectを生成 */
+      function createStatusTagSelectDOM(statusTag) {
+        let opStatusTagNone = $("<option>").text("未設定").attr("value", STATUS_TAG.NONE).attr("id", "opNone");
+        let opStatusTagInvisible = $("<option>").text("非表示").attr("value", STATUS_TAG.INVISIBLE).attr("id", "opInvisible");
+        let opStatusTagBuy = $("<option>").text("購読中").attr("value", STATUS_TAG.BUY).attr("id", "opBuy");
+        let opStatusTagEnd = $("<option>").text("完結済").attr("value", STATUS_TAG.END).attr("id", "opEnd");
+        let opStatusTagNotComic = $("<option>").text("非コミック").attr("value", STATUS_TAG.NOT_COMIC).attr("id", "opNotComic");
+
+        switch(statusTag) {
+          case STATUS_TAG.INVISIBLE :
+            opStatusTagInvisible.prop("selected", true);
+            break;
+          case STATUS_TAG.BUY :
+            opStatusTagBuy.prop("selected", true);
+            break;
+          case STATUS_TAG.END :
+            opStatusTagEnd.prop("selected", true);
+            break;
+          case STATUS_TAG.NOT_COMIC :
+            opStatusTagNotComic.prop("selected", true);
+            break;
+          default:
+            opStatusTagNone.prop("selected", true);
+            //NONEもここに入る。
+            break;
+        }
+
+        return $("<div class='divRbSelectStatusTag' >").append(
+        // return $("<div class='divRbSelectStatusTag' style='display:none;' >").append(
+            $("<select>")
+            .css("width", "100%")
+            .css("font-size", "24px")
+            .append(opStatusTagNone)
+            .append(opStatusTagInvisible)
+            .append(opStatusTagBuy)
+            .append(opStatusTagEnd)
+            .append(opStatusTagNotComic)
+        );
+      }
+
+      /* 本単位で検索して表示 */
+      /* 本単位は数が少ないので常に動的にDOMを生成する */
+      function dispBooks(dispTargets) {
+        for (row of dispTargets) { //TODO 検索条件
+          if (row[ASIN] == "ASIN") {
+            //ヘッダ行は飛ばす
+            continue;
+          }
+
+          $("#subDispAreaDiv").append(
+            $("<div>", {
+              class:"dispElementDiv"
+            }).append(
+              //画像をクリックしたらリーダーに遷移
+              $("<a>", {
+                href:"https://read.amazon.co.jp/manga/" + row[ASIN],
+                target:"_blank",
+              }).append(
+                $("<img>", {
+                  src:"http://images.amazon.com/images/P/" + row[ASIN] + ".01._SCLZZZZZZZ.jpg",
+                  class: "dispElementImg",
+                })
+              )
+            )
+          );
+        }
+
+        //textを設定する方法がこれしか見つけられなかったのでロジックを外出し
+        let anchorStorePageLink = $("<a>", {
+          href:"https://www.amazon.co.jp/gp/product/" + dispTargets[0][ASIN],
+          target:"_blank",
+          class: "dispElementImg",
+        });
+        anchorStorePageLink.text("ストアページ");
+
+        //一番下にストアページリンクとステータスタグselectを追加
+        $("#subDispAreaDiv").append(
+          $("<div>", {
+            class:"dispElementDiv"
+          }).append(
+            anchorStorePageLink
+          ).append(
+            // createStatusTagSelectDOM(dispTargets[0][status_tag])
+            createStatusTagSelectDOM(dispTargets[0][status_tag]).find("select").on("change", async function() {
+              await updateStatusTag(
+                dispTargets[0][title_pronunciation_series],
+                $(this).val());
+            })
+          )
+        );
+      }
+
+      //seriesDataにfilter、sortをあてて、それを回してseriesDOMArrayからDOMを取り出してappendしていく
+      function dispSeries() {
+
+        let seriesDataTemp = [...seriesData];//配列のディープコピー？
+        
+        //ソート
+        switch($('input[name="rbSort"]:checked').val()) {
+          case "publicationDate" :
+            // console.log("出版日順");
+            seriesDataTemp = seriesDataTemp.sort((a, b) => {
+              return (a[publication_date] < b[publication_date]) ? 1 : -1;
+            });
+            break;
+          case "purchaseDate" :
+            // console.log("購入日順");
+            seriesDataTemp = seriesDataTemp.sort((a, b) => {
+              return (a[purchase_date] < b[purchase_date]) ? 1 : -1;
+            });
+            break;
+          default:
+            break;
+        }
+
+        //タイトルによる絞り込み
+        if ($("#inputSearchTitle").val()) {
+          seriesDataTemp = seriesDataTemp.filter((row) => {
+            let hit_title = row[title].toUpperCase().includes($("#inputSearchTitle").val().toUpperCase());
+            let hit_title_pronunciation = row[title_pronunciation].toUpperCase().includes($("#inputSearchTitle").val().toUpperCase());
+            return (hit_title || hit_title_pronunciation);
+          });
+        }
+
+        //ステータスタグによる絞り込み
+        seriesDataTemp = seriesDataTemp.filter((row) => {
+          let rNONE = $("#cbStatusTagNone").prop("checked") && (row[status_tag] == STATUS_TAG.NONE);
+          let rINVISIBLE = $("#cbStatusTagInvisible").prop("checked") && (row[status_tag] == STATUS_TAG.INVISIBLE);
+          let rBUY = $("#cbStatusTagBuy").prop("checked") && (row[status_tag] == STATUS_TAG.BUY);
+          let rEND = $("#cbStatusTagEnd").prop("checked") && (row[status_tag] == STATUS_TAG.END);
+          let rNOT_COMIC = $("#cbStatusTagNotComic").prop("checked") && (row[status_tag] == STATUS_TAG.NOT_COMIC);
+          return (rNONE || rINVISIBLE || rBUY || rEND || rNOT_COMIC);
+        });
+
+        //描画
+        $('input[name=rbDispUnit]').val(['series']);//値をセットしてもchangeイベントが呼ばれない。なぜ？
+        toggleDispAreaDiv("main");
+        $("#dispAreaDiv").children().remove();
+
+        for (row of seriesDataTemp) {
+          //imgタグ生成のタイミングでclickイベントをセットすると謎なタイミングでclickイベントが吹っ飛ぶので
+          //描画するタイミングでclickイベントをセットするように実装する。本当にキモイ実装をしてる。
+          let outerDivDOM = seriesDOMArray[row[ASIN]];
+          outerDivDOM.children("img").click(function(event){
+            if ($("#cbEditMode").prop("checked")) {
+              //編集モードの場合は本一覧に遷移させない
+            } else {
+              $('input[name=rbDispUnit]').val(['book']); //値をセットしてもchangeイベントが呼ばれない。なぜ？
+              toggleDispAreaDiv("sub");
+              $("#subDispAreaDiv").children().remove();
+  
+              let filteredData = allData.filter((data) => {
+                return data[title_pronunciation_series] == $(this).parent().find("span").text();
+              }).sort((a, b) => {
+                //昇順sort
+                return (a[publication_date] > b[publication_date]) ? 1 : -1;
+              });
+  
+              //本一覧を渡す
+              dispBooks(filteredData);
+            }
+          });
+
+          outerDivDOM.find("select").on("change", async function() {
+            await updateStatusTag(
+              $(this).parent().parent().find("span").text(), 
+              $(this).val());
+          });
+
+          $("#dispAreaDiv").append(outerDivDOM);
+        }
+
+        dispDivRbSelectStatusTag();
+      }
+
+      /* 表示領域切り替え */
+      /* スクロールバー位置取得は描画更新前、スクロールバー位置変更は描画更新後 */
+      let divAreaDivScrollYCache = 0;
+      function toggleDispAreaDiv(targetDiv) {
+        if (targetDiv == "main") {
+          if ($("#dispAreaDiv").css("display") == "flex") {
+            //sort、filter変更時はスクロールをいじらない
+          } else {
+            $("#dispAreaDiv").css("display", "flex");
+            $("#subDispAreaDiv").css("display", "none");
+            scrollTo(0, divAreaDivScrollYCache);
+          }
+        } else if (targetDiv == "sub") {
+          divAreaDivScrollYCache = window.scrollY;
+          $("#dispAreaDiv").css("display", "none");
+          $("#subDispAreaDiv").css("display", "flex");
+          scrollTo(0, 0);
+        }
+      }
+    </script>
+  </body>
+</html>
