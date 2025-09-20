@@ -3,8 +3,6 @@
   <head>
     <base target="_top">
     <meta charset="UTF-8">
-    <!-- TODO ↓がなくてもレスポンシブになるっぽいけどこいつはどういう仕事をするんや？MDNにはdevice-widthは非推奨と書かれていた -->
-    <!-- <meta name="viewport" content="width=device-width,initial-scale=1.0"> -->
     <title>たいとる！</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <!-- 外部jsファイルの組み込み -->
@@ -57,7 +55,7 @@
             <label for="cbStatusTagBuy">購読中</label>
             <input type="checkbox" id="cbStatusTagEnd" onclick='dispSeries();' checked />
             <label for="cbStatusTagEnd">完結済</label>
-            <input type="checkbox" id="cbStatusTagNotComic" onclick='dispSeries();' checked />
+            <input type="checkbox" id="cbStatusTagNotComic" onclick='dispSeries();' />
             <label for="cbStatusTagNotComic">非コミック</label>
           </td>
           <td>
@@ -143,6 +141,25 @@
 
       //DOM読込後の処理
       $(document).ready(async function(){
+
+        //localStorageに保持している検索チェックボックスの状態を反映
+        if (localStorage.getItem("cbStatusTagNoneChecked") != null) {
+          //文字列のまま渡しても反映されないのでbooleanに変化して渡す
+          $("#cbStatusTagNone").prop("checked", (localStorage.getItem("cbStatusTagNoneChecked") === "true")); 
+        }
+        if (localStorage.getItem("cbStatusTagInvisibleChecked") != null) {
+          $("#cbStatusTagInvisible").prop("checked", (localStorage.getItem("cbStatusTagInvisibleChecked") === "true")); 
+        }
+        if (localStorage.getItem("cbStatusTagInvisibleChecked") != null) {
+          $("#cbStatusTagBuy").prop("checked", (localStorage.getItem("cbStatusTagInvisibleChecked") === "true")); 
+        }
+        if (localStorage.getItem("cbStatusTagEndChecked") != null) {
+          $("#cbStatusTagEnd").prop("checked", (localStorage.getItem("cbStatusTagEndChecked") === "true")); 
+        }
+        if (localStorage.getItem("cbStatusTagNotComicChecked") != null) {
+          $("#cbStatusTagNotComic").prop("checked", (localStorage.getItem("cbStatusTagNotComicChecked") === "true")); 
+        }
+
         await getASINData();
         await getTitlePronunciationSeriesData();
         await getAllData();
@@ -216,7 +233,7 @@
       /* 本単位で検索して表示 */
       /* 本単位は数が少ないので常に動的にDOMを生成する */
       function dispBooks(dispTargets) {
-        for (row of dispTargets) { //TODO 検索条件
+        for (row of dispTargets) {
           if (row[ASIN] == "ASIN") {
             //ヘッダ行は飛ばす
             continue;
@@ -267,6 +284,13 @@
 
       //seriesDataにfilter、sortをあてて、それを回してseriesDOMArrayからDOMを取り出してappendしていく
       function dispSeries() {
+
+        //検索チェックボックスの状態をcookieに保存
+        localStorage.setItem("cbStatusTagNoneChecked",      $("#cbStatusTagNone").prop("checked"));
+        localStorage.setItem("cbStatusTagInvisibleChecked", $("#cbStatusTagInvisible").prop("checked"));
+        localStorage.setItem("cbStatusTagBuyChecked",       $("#cbStatusTagBuy").prop("checked"));
+        localStorage.setItem("cbStatusTagEndChecked",       $("#cbStatusTagEnd").prop("checked"));
+        localStorage.setItem("cbStatusTagNotComicChecked",  $("#cbStatusTagNotComic").prop("checked"));
 
         let seriesDataTemp = [...seriesData];//配列のディープコピー？
         
