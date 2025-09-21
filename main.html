@@ -17,6 +17,7 @@
       <table border="1">
         <tr>
           <td id="tdXmlFileSelect">
+            <!-- PCの場合のみ表示する -->
             <input id="inputXmlFileSelect" type="file" style="width:150px;"   onchange="upsertFromXmlFile(this)" />
           </td>
           <td>
@@ -59,18 +60,34 @@
             <pre id="preInitTime">初期処理時間：</pre>
           </td>
           <td>
-            <pre>タイトル検索（カナ可）</pre>
-            <input 
-              id="inputSearchTitle" 
-              style="width:-webkit-fill-available;" 
-              onchange='dispSeries();'/>
+            <div style="display:flex;align-items:center;">
+              <pre>タイトル検索（カナ可）</pre>
+              <button 
+                onclick="$('#inputSearchTitle').val('');$('#inputSearchTitle').trigger('onchange')" >
+                クリア
+              </button>
+            </div>
+            <div>
+              <input 
+                id="inputSearchTitle" 
+                style="width:-webkit-fill-available;" 
+                onchange='dispSeries();'/>
+            </div>
           </td>
           <td>
-            <pre>作家検索（カナ可）</pre>
-            <input 
-              id="inputSearchAuthors" 
-              style="width:-webkit-fill-available;" 
-              onchange='dispSeries();'/>
+            <div style="display:flex;align-items:center;">
+              <pre>作家検索（カナ可）</pre>
+              <button 
+                onclick="$('#inputSearchAuthors').val('');$('#inputSearchAuthors').trigger('onchange')" >
+                クリア
+              </button>
+            </div>
+            <div>
+              <input 
+                id="inputSearchAuthors" 
+                style="width:-webkit-fill-available;" 
+                onchange='dispSeries();'/>
+            </div>
           </td>
           <td style="text-align:center;">
             <button 
