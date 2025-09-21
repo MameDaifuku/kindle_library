@@ -66,6 +66,7 @@ kindleアプリが気に入らないので自作した。
 　- publication_dateが空白になっている。
 　- 同じタイトルの本でも読み仮名（title_pronunciation）の表記揺れがある。
 　　（「アドベンチャー」と「アドヴェンチャー」、等）
+　- コミカライズ作品の場合に原作者やキャラクター原案の名前がauthorsに含まれていないパターンがある。
 
 ・シリーズ単位の集約は「title_pronunciation_series」を使って行っている。
 　この「title_pronunciation_series」はxml内に保持している項目ではなく
