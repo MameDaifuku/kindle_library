@@ -17,7 +17,6 @@
       <table border="1">
         <tr>
           <td id="tdXmlFileSelect">
-            <!-- PCの場合のみ表示する -->
             <input id="inputXmlFileSelect" type="file" style="width:150px;"   onchange="upsertFromXmlFile(this)" />
           </td>
           <td>
@@ -46,7 +45,7 @@
             <input type="checkbox" id="cbDispSeries" checked />
             <label for="cbDispSeries">シリーズ単位で表示する</label>
           </td>
-          <td>
+          <td colspan="2">
             <input type="checkbox" id="cbStatusTagNone" onclick='dispSeries();' checked />
             <label for="cbStatusTagNone">未設定</label>
             <input type="checkbox" id="cbStatusTagInvisible" onclick='dispSeries();' />
@@ -58,11 +57,39 @@
             <input type="checkbox" id="cbStatusTagNotComic" onclick='dispSeries();' />
             <label for="cbStatusTagNotComic">非コミック</label>
           </td>
+        </tr>
+        <tr>
           <td>
-            <!-- TODO 現状空欄 -->
+            <pre id="preGetAllDataStatus" >取得中......</pre>
+            <pre id="preInitTime">初期処理時間：</pre>
           </td>
           <td>
-            <button onclick='toggleDispAreaDiv("main");' >シリーズ表示に切替</button>
+            <pre>タイトル検索（カナ可）</pre>
+            <input 
+              id="inputSearchTitle" 
+              style="width:-webkit-fill-available;" 
+              onchange='dispSeries();'/>
+          </td>
+          <td>
+            <pre>作家検索（カナ可）</pre>
+            <input 
+              id="inputSearchAuthors" 
+              style="width:-webkit-fill-available;" 
+              onchange='dispSeries();'/>
+          </td>
+          <td style="text-align:center;">
+            <button 
+              style="width:-webkit-fill-available;" 
+              onclick="scrollToTop();" >
+              上へスクロール
+            </button>
+          </td>
+          <td style="text-align:center;">
+            <button 
+              style="width:-webkit-fill-available;" 
+              onclick='toggleDispAreaDiv("main");' >
+              シリーズ表示に切替
+            </button>
             <div style="display:none;">
               <input 
                 type="radio" 
@@ -82,28 +109,6 @@
               <label for="rbDispUnitBook">本表示</label>
             </div>
           </td>
-        </tr>
-        <tr>
-          <td>
-            <pre id="preInitTime">初期処理時間：</pre>
-          </td>
-          <td>
-            <pre id="preGetAllDataStatus" >取得中......</pre>
-          </td>
-          <td>
-            <pre>タイトル検索</pre>
-            <input 
-              id="inputSearchTitle" 
-              style="width:-webkit-fill-available;" 
-              onchange='dispSeries();'/>
-          </td>
-          <td>
-            <!-- TODO 現状空欄 -->
-          </td>
-          <td>
-            <!-- TODO 現状空欄 -->
-          </td>
-          <td><button onclick="scrollToTop();" >上へスクロール</button></td>
         </tr>
       </table>
     </header>
@@ -317,6 +322,15 @@
           seriesDataTemp = seriesDataTemp.filter((row) => {
             let hit_title = row[title].toUpperCase().includes($("#inputSearchTitle").val().toUpperCase());
             let hit_title_pronunciation = row[title_pronunciation].toUpperCase().includes($("#inputSearchTitle").val().toUpperCase());
+            return (hit_title || hit_title_pronunciation);
+          });
+        }
+
+        //作家による絞り込み
+        if ($("#inputSearchAuthors").val()) {
+          seriesDataTemp = seriesDataTemp.filter((row) => {
+            let hit_title = row[authors].toUpperCase().includes($("#inputSearchAuthors").val().toUpperCase());
+            let hit_title_pronunciation = row[authors_pronunciation].toUpperCase().includes($("#inputSearchAuthors").val().toUpperCase());
             return (hit_title || hit_title_pronunciation);
           });
         }
