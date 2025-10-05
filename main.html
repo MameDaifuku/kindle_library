@@ -44,6 +44,8 @@
           <td colspan="2">
             <input type="checkbox" id="cbStatusTagNone" onclick='dispSeries();' checked />
             <label for="cbStatusTagNone">未設定</label>
+            <input type="checkbox" id="cbStatusTagHold" onclick='dispSeries();' />
+            <label for="cbStatusTagHold">保留</label>
             <input type="checkbox" id="cbStatusTagInvisible" onclick='dispSeries();' />
             <label for="cbStatusTagInvisible">非表示</label>
             <input type="checkbox" id="cbStatusTagBuy" onclick='dispSeries();' checked />
@@ -164,6 +166,9 @@
           //文字列のまま渡しても反映されないのでbooleanに変化して渡す
           $("#cbStatusTagNone").prop("checked", (localStorage.getItem("cbStatusTagNoneChecked") === "true")); 
         }
+        if (localStorage.getItem("cbStatusTagHoldChecked") != null) {
+          $("#cbStatusTagHold").prop("checked", (localStorage.getItem("cbStatusTagHoldChecked") === "true")); 
+        }
         if (localStorage.getItem("cbStatusTagInvisibleChecked") != null) {
           $("#cbStatusTagInvisible").prop("checked", (localStorage.getItem("cbStatusTagInvisibleChecked") === "true")); 
         }
@@ -265,12 +270,16 @@
       /* StatusTagのselectを生成 */
       function createStatusTagSelectDOM(statusTag) {
         let opStatusTagNone = $("<option>").text("未設定").attr("value", STATUS_TAG.NONE).attr("id", "opNone");
+        let opStatusTagHold = $("<option>").text("保留").attr("value", STATUS_TAG.HOLD).attr("id", "opHold");
         let opStatusTagInvisible = $("<option>").text("非表示").attr("value", STATUS_TAG.INVISIBLE).attr("id", "opInvisible");
         let opStatusTagBuy = $("<option>").text("購読中").attr("value", STATUS_TAG.BUY).attr("id", "opBuy");
         let opStatusTagEnd = $("<option>").text("完結済").attr("value", STATUS_TAG.END).attr("id", "opEnd");
         let opStatusTagNotComic = $("<option>").text("非コミック").attr("value", STATUS_TAG.NOT_COMIC).attr("id", "opNotComic");
 
         switch(statusTag) {
+          case STATUS_TAG.HOLD :
+            opStatusTagHold.prop("selected", true);
+            break;
           case STATUS_TAG.INVISIBLE :
             opStatusTagInvisible.prop("selected", true);
             break;
@@ -295,6 +304,7 @@
             .css("width", "100%")
             .css("font-size", "24px")
             .append(opStatusTagNone)
+            .append(opStatusTagHold)
             .append(opStatusTagInvisible)
             .append(opStatusTagBuy)
             .append(opStatusTagEnd)
@@ -359,6 +369,7 @@
 
         //検索チェックボックスの状態をcookieに保存
         localStorage.setItem("cbStatusTagNoneChecked",      $("#cbStatusTagNone").prop("checked"));
+        localStorage.setItem("cbStatusTagHoldChecked",      $("#cbStatusTagHold").prop("checked"));
         localStorage.setItem("cbStatusTagInvisibleChecked", $("#cbStatusTagInvisible").prop("checked"));
         localStorage.setItem("cbStatusTagBuyChecked",       $("#cbStatusTagBuy").prop("checked"));
         localStorage.setItem("cbStatusTagEndChecked",       $("#cbStatusTagEnd").prop("checked"));
@@ -405,11 +416,12 @@
         //ステータスタグによる絞り込み
         seriesDataTemp = seriesDataTemp.filter((row) => {
           let rNONE = $("#cbStatusTagNone").prop("checked") && (row[status_tag] == STATUS_TAG.NONE);
+          let rHOLD = $("#cbStatusTagHold").prop("checked") && (row[status_tag] == STATUS_TAG.HOLD);
           let rINVISIBLE = $("#cbStatusTagInvisible").prop("checked") && (row[status_tag] == STATUS_TAG.INVISIBLE);
           let rBUY = $("#cbStatusTagBuy").prop("checked") && (row[status_tag] == STATUS_TAG.BUY);
           let rEND = $("#cbStatusTagEnd").prop("checked") && (row[status_tag] == STATUS_TAG.END);
           let rNOT_COMIC = $("#cbStatusTagNotComic").prop("checked") && (row[status_tag] == STATUS_TAG.NOT_COMIC);
-          return (rNONE || rINVISIBLE || rBUY || rEND || rNOT_COMIC);
+          return (rNONE || rHOLD || rINVISIBLE || rBUY || rEND || rNOT_COMIC);
         });
 
         //描画
