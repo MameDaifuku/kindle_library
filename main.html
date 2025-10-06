@@ -42,18 +42,22 @@
             <label for="rbSortPublicationDate">出版日順</label>
           </td>
           <td colspan="2">
-            <input type="checkbox" id="cbStatusTagNone" onclick='dispSeries();' checked />
-            <label for="cbStatusTagNone">未設定</label>
-            <input type="checkbox" id="cbStatusTagHold" onclick='dispSeries();' />
-            <label for="cbStatusTagHold">保留</label>
-            <input type="checkbox" id="cbStatusTagInvisible" onclick='dispSeries();' />
-            <label for="cbStatusTagInvisible">非表示</label>
-            <input type="checkbox" id="cbStatusTagBuy" onclick='dispSeries();' checked />
-            <label for="cbStatusTagBuy">購読中</label>
-            <input type="checkbox" id="cbStatusTagEnd" onclick='dispSeries();' checked />
-            <label for="cbStatusTagEnd">完結済</label>
-            <input type="checkbox" id="cbStatusTagNotComic" onclick='dispSeries();' />
-            <label for="cbStatusTagNotComic">非コミック</label>
+            <div>
+              <input type="checkbox" id="cbStatusTagNone" onclick='dispSeries();' checked />
+              <label for="cbStatusTagNone">未設定</label>
+              <input type="checkbox" id="cbStatusTagHold" onclick='dispSeries();' />
+              <label for="cbStatusTagHold">保留</label>
+              <input type="checkbox" id="cbStatusTagInvisible" onclick='dispSeries();' />
+              <label for="cbStatusTagInvisible">非表示</label>
+            </div>
+            <div>
+              <input type="checkbox" id="cbStatusTagBuy" onclick='dispSeries();' checked />
+              <label for="cbStatusTagBuy">購読中</label>
+              <input type="checkbox" id="cbStatusTagEnd" onclick='dispSeries();' checked />
+              <label for="cbStatusTagEnd">完結済</label>
+              <input type="checkbox" id="cbStatusTagNotComic" onclick='dispSeries();' />
+              <label for="cbStatusTagNotComic">非コミック</label>
+            </div>
           </td>
         </tr>
         <tr>
@@ -97,7 +101,13 @@
               onclick="scrollToTop();" >
               上へスクロール
             </button>
+            <button 
+              style="width:-webkit-fill-available;" 
+              onclick='toggleDispAreaDiv("main");' >
+              シリーズ表示に切替
+            </button>
           </td>
+          <!--
           <td style="text-align:center;">
             <button 
               style="width:-webkit-fill-available;" 
@@ -123,6 +133,7 @@
               <label for="rbDispUnitBook">本表示</label>
             </div>
           </td>
+          -->
         </tr>
       </table>
     </header>
