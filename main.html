@@ -209,13 +209,19 @@
         //シリーズ単位で集約
         for (let seriesTitle of titlePronunciationSeriesData) {
           //まずデータ一式からシリーズタイトルに合致する行を絞り込み
-          let allDataFiltered = allData.filter((row) => (row[title_pronunciation_series] == seriesTitle));
-          //絞り込んだ行を出版日で降順sortして一番上をresultに格納
-          let maxRow = allDataFiltered.sort((a, b) => {
-            //降順sort
-            return (a[publication_date] < b[publication_date]) ? 1 : -1;
-          })[0];
-          seriesData.push(maxRow);
+          //unlimitedは問答無用で非表示とする。
+          let allDataFiltered = allData.filter(function(row){
+            return (row[title_pronunciation_series] == seriesTitle) && (row[origins] != "KindleUnlimited;")
+          });
+
+          if (allDataFiltered.length > 0) {
+            //絞り込んだ行を出版日で降順sortして一番上をresultに格納
+            let maxRow = allDataFiltered.sort((a, b) => {
+              //降順sort
+              return (a[publication_date] < b[publication_date]) ? 1 : -1;
+            })[0];
+            seriesData.push(maxRow);
+          }
         }
   
         //seriesDOMArrayを生成
