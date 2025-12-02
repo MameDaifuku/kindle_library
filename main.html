@@ -215,12 +215,22 @@
           });
 
           if (allDataFiltered.length > 0) {
-            //絞り込んだ行を出版日で降順sortして一番上をresultに格納
-            let maxRow = allDataFiltered.sort((a, b) => {
+            // //絞り込んだ行を出版日で降順sortして一番上をresultに格納
+            // let maxRow = allDataFiltered.sort((a, b) => {
+            //   //降順sort
+            //   return (a[publication_date] < b[publication_date]) ? 1 : -1;
+            // })[0];
+            // seriesData.push(maxRow);
+
+            let sorted = allDataFiltered.sort((a, b) => {
               //降順sort
               return (a[publication_date] < b[publication_date]) ? 1 : -1;
-            })[0];
-            seriesData.push(maxRow);
+            });
+
+            // 購入済みのシリーズの新刊にはstatus_tag未設定の状態なので既巻のstatus_tagを最新刊に補完する
+            // メモリ上で補完するだけでDBは変更しない。
+            sorted[0][status_tag] = sorted[sorted.length - 1][status_tag];
+            seriesData.push(sorted[0]);
           }
         }
   
