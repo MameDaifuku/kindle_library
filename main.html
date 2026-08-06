@@ -25,21 +25,32 @@
             <label for="cbEditMode">編集モード</label>
           </td>
           <td>
-            <input 
-              type="radio" 
-              id="rbSortPurchaseDate" 
-              name="rbSort" 
-              value="purchaseDate" 
-              onchange='dispSeries();' 
-              checked />
-            <label for="rbSortPurchaseDate">購入日順</label>
-            <input 
-              type="radio" 
-              id="rbSortPublicationDate" 
-              name="rbSort" 
-              value="publicationDate" 
-              onchange='dispSeries();' />
-            <label for="rbSortPublicationDate">出版日順</label>
+            <div>
+              <input 
+                type="radio" 
+                id="rbSortPurchaseDate" 
+                name="rbSort" 
+                value="purchaseDate" 
+                onchange='dispSeries();' 
+                checked />
+              <label for="rbSortPurchaseDate">購入日順</label>
+              <input 
+                type="radio" 
+                id="rbSortPublicationDate" 
+                name="rbSort" 
+                value="publicationDate" 
+                onchange='dispSeries();' />
+              <label for="rbSortPublicationDate">出版日順</label>
+            </div>
+            <div>
+              <input 
+                type="radio" 
+                id="rbSortLastReadDate" 
+                name="rbSort" 
+                value="lastReadDate" 
+                onchange='dispSeries();' />
+              <label for="rbSortLastReadDate">最終参照日順</label>
+            </div>
           </td>
           <td colspan="2">
             <div>
@@ -348,14 +359,28 @@
             continue;
           }
 
+          let linkUrl = "";
+          if (dispTargets[0][status_tag] == STATUS_TAG.NOT_COMIC) {
+            linkUrl = "https://read.amazon.co.jp/?asin=" + row[ASIN];
+          } else {
+            linkUrl = "https://read.amazon.co.jp/manga/" + row[ASIN];
+          }
+
           $("#subDispAreaDiv").append(
             $("<div>", {
               class:"dispElementDiv"
             }).append(
               //画像をクリックしたらリーダーに遷移
               $("<a>", {
-                href:"https://read.amazon.co.jp/manga/" + row[ASIN],
+                // href:"https://read.amazon.co.jp/manga/" + row[ASIN],
+                href:linkUrl,
                 target:"_blank",
+                click: async function(e) {
+                  console.log("clicked", row[ASIN]);
+                  await updateLastReadDate(
+                    dispTargets[0][title_pronunciation_series],
+                    formatDateWithOffset(new Date()));
+                }
               }).append(
                 $("<img>", {
                   src:"http://images.amazon.com/images/P/" + row[ASIN] + ".01._SCLZZZZZZZ.jpg",
@@ -416,6 +441,12 @@
             // console.log("購入日順");
             seriesDataTemp = seriesDataTemp.sort((a, b) => {
               return (a[purchase_date] < b[purchase_date]) ? 1 : -1;
+            });
+            break;
+          case "lastReadDate" :
+            // console.log("最終参照日順");
+            seriesDataTemp = seriesDataTemp.sort((a, b) => {
+              return (a[last_read_date] < b[last_read_date]) ? 1 : -1;
             });
             break;
           default:
@@ -510,6 +541,23 @@
           $("#subDispAreaDiv").css("display", "flex");
           scrollTo(0, 0);
         }
+      }
+
+      function formatDateWithOffset(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        const h = String(date.getHours()).padStart(2, "0");
+        const mi = String(date.getMinutes()).padStart(2, "0");
+        const s = String(date.getSeconds()).padStart(2, "0");
+
+        // タイムゾーンオフセットを計算(分単位→時分に変換)
+        const offsetMinutes = -date.getTimezoneOffset(); // 日本なら+540
+        const sign = offsetMinutes >= 0 ? "+" : "-";
+        const offsetH = String(Math.floor(Math.abs(offsetMinutes) / 60)).padStart(2, "0");
+        const offsetM = String(Math.abs(offsetMinutes) % 60).padStart(2, "0");
+
+        return `${y}-${m}-${d}T${h}:${mi}:${s}${sign}${offsetH}${offsetM}`;
       }
     </script>
   </body>

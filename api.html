@@ -2,6 +2,20 @@
 
   /* ★★★★★★★★★★★★★★★更新系★★★★★★★★★★★★★★ */
 
+  function updateLastReadDate(titlePronunciationSeries, lastReadDate) {
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler(function(result){
+          resolve(result);
+        })
+        .withFailureHandler(function(error){
+          console.error("GAS side error:", error);
+          reject(error);
+        })
+        .updateLastReadDate([titlePronunciationSeries, lastReadDate]);
+    });
+  }
+
   function updateStatusTag(titlePronunciationSeries, statusTag) {
     return new Promise((resolve, reject) => {
       google.script.run
@@ -61,6 +75,7 @@
             authorsPronunciation,
             book.getElementsByTagName("publication_date")[0].textContent,
             book.getElementsByTagName("purchase_date")[0].textContent,
+            "", //last_read_date
             "", //STATUS_TAG //"NONE"とかセットしてはいけない。
             publishers,
             book.getElementsByTagName("textbook_type")[0].textContent,

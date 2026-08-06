@@ -30,6 +30,7 @@ const authors                     = columnIndex++;
 const authors_pronunciation       = columnIndex++;
 const publication_date            = columnIndex++;
 const purchase_date               = columnIndex++;
+const last_read_date              = columnIndex++;
 const status_tag                  = columnIndex++;
 const publishers                  = columnIndex++;
 const textbook_type               = columnIndex++;
@@ -89,6 +90,25 @@ function updateStatusTag(vals) {
     if (values[i][title_pronunciation_series] == target_title_pronunciation_series) {
       let temp = sheet.getRange((i+1)+":"+(i+1)).getValues();
       temp[0][status_tag] = target_status_tag;
+      // return sheet.getRange(String(i+1) + ":" + String(i+1)).getValues();
+      sheet.getRange(String(i+1) + ":" + String(i+1)).setValues(temp);
+    }
+  }
+}
+
+function updateLastReadDate(vals) {
+  const target_title_pronunciation_series = vals[0];
+  const target_last_read_date = vals[1];
+  
+  // const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  const spreadsheet = SpreadsheetApp.openById(SPREAD_SHEET_ID);
+  const sheet = spreadsheet.getSheetByName('BOOKS'); 
+  const values = sheet.getDataRange().getValues();
+
+  for (let i=0; i<values.length; i++) {
+    if (values[i][title_pronunciation_series] == target_title_pronunciation_series) {
+      let temp = sheet.getRange((i+1)+":"+(i+1)).getValues();
+      temp[0][last_read_date] = target_last_read_date;
       // return sheet.getRange(String(i+1) + ":" + String(i+1)).getValues();
       sheet.getRange(String(i+1) + ":" + String(i+1)).setValues(temp);
     }
