@@ -170,6 +170,28 @@
       <div id="subDispAreaDiv"></div>
     </div>
 
+    <dialog id="bookInfoDialog">
+      <table>
+        <tr>
+          <td style="background-color:#C0C0C0"><pre>タイトル</pre></td>
+          <td><pre id="bookInfoTitle"></pre></td>
+        </tr>
+        <tr>
+          <td style="background-color:#C0C0C0"><pre>著者</pre></td>
+          <td><pre id="bookInfoAuthors"></pre></td>
+        </tr>
+        <tr>
+          <td style="background-color:#C0C0C0"><pre>出版日</pre></td>
+          <td><pre id="bookInfoPublicationDate"></pre></td>
+        </tr>
+        <tr>
+          <td style="background-color:#C0C0C0"><pre>購入日</pre></td>
+          <td><pre id="bookInfoPurchaseDate"></pre></td>
+        </tr>
+      </table>
+      <button onclick="this.closest('dialog').close()">OK</button>
+    </dialog>
+
     <script type="text/javascript">
 
       //スプシのデータをブラウザにキャッシュする
@@ -350,15 +372,22 @@
         );
       }
 
+      //本長押し判定用タイマー
+      let timer = null;
+      const longPressTime = 1000; //ミリ秒
+
       /* 本単位で検索して表示 */
       /* 本単位は数が少ないので常に動的にDOMを生成する */
       function dispBooks(dispTargets) {
         
+        let count = -1;
         for (row of dispTargets) {
           if (row[ASIN] == "ASIN") {
             //ヘッダ行は飛ばす
             continue;
           }
+
+          count++;
 
           let linkUrl = "";
           if (dispTargets[0][status_tag] == STATUS_TAG.NOT_COMIC) {
@@ -373,14 +402,31 @@
             }).append(
               //画像をクリックしたらリーダーに遷移
               $("<a>", {
-                // href:"https://read.amazon.co.jp/manga/" + row[ASIN],
                 href:linkUrl,
                 target:"_blank",
+                class:count, //classに何冊目かという情報を持たせる（やっつけ）
                 click: async function(e) {
-                  console.log("clicked", row[ASIN]);
+                  //リーダーを開くときに最終参照日を更新
                   await updateLastReadDate(
                     dispTargets[0][title_pronunciation_series],
                     formatDateWithOffset(new Date()));
+                },
+                mousedown: function(e) {
+                  timer = setTimeout(() => {
+                    var cls = $(this).attr('class');
+                    $("#bookInfoTitle").text(dispTargets[cls][title]);
+                    $("#bookInfoAuthors").text(dispTargets[cls][authors]);
+                    $("#bookInfoPublicationDate").text(dispTargets[cls][publication_date]);
+                    $("#bookInfoPurchaseDate").text(dispTargets[cls][purchase_date]);
+                    
+                    $("#bookInfoDialog")[0].showModal();
+                  }, longPressTime);
+                },
+                mouseleave: function(e) {
+                  clearTimeout(timer);
+                },
+                mouseup: function(e) {
+                  clearTimeout(timer);
                 }
               }).append(
                 $("<img>", {
